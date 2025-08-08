@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Family Contact Directory</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <!-- Auth Gate -->
+      <div id="auth-screen" class="overlay visible">
+        <div class="overlay-card">
+          <h1 class="app-title">Family Contact Directory</h1>
+          <p id="auth-description">Set a shared family passcode to secure your directory.</p>
+          <form id="setup-passcode-form" class="auth-form" autocomplete="off">
+            <label for="setup-passcode-input">Create Passcode</label>
+            <input id="setup-passcode-input" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="e.g., 1234" required minlength="4" />
+            <label for="setup-passcode-confirm">Confirm Passcode</label>
+            <input id="setup-passcode-confirm" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="Re-enter passcode" required minlength="4" />
+            <button type="submit" class="btn primary">Save Passcode & Enter</button>
+          </form>
+
+          <form id="unlock-form" class="auth-form hidden" autocomplete="off">
+            <label for="unlock-passcode-input">Enter Passcode</label>
+            <input id="unlock-passcode-input" type="password" inputmode="numeric" pattern="[0-9]*" placeholder="Passcode" required minlength="4" />
+            <button type="submit" class="btn primary">Unlock</button>
+            <button id="reset-passcode-btn" type="button" class="btn link">Forgot/Reset (clears local data)</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h2 class="brand">👨‍👩‍👧‍👦 Family Directory</h2>
+        </div>
+        <div class="topbar-right">
+          <div class="search-wrapper">
+            <input id="search-input" type="search" placeholder="Search by name or relation" aria-label="Search" />
+            <button id="clear-search" class="icon-btn" aria-label="Clear search">✕</button>
+          </div>
+          <button id="add-member-btn" class="btn primary">+ Add Member</button>
+          <div class="menu">
+            <button id="menu-btn" class="icon-btn" aria-label="Open menu">☰</button>
+            <div id="menu-dropdown" class="menu-dropdown">
+              <button id="export-json-btn" class="menu-item">Export JSON</button>
+              <button id="export-csv-btn" class="menu-item">Export CSV</button>
+              <label class="menu-item file-label">Import JSON
+                <input id="import-json-input" type="file" accept="application/json" />
+              </label>
+              <button id="settings-btn" class="menu-item">Settings</button>
+              <button id="lock-btn" class="menu-item">Lock</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <main class="content">
+        <div id="empty-state" class="empty-state">
+          <p>No family members yet.</p>
+          <button id="empty-add-btn" class="btn primary">Add your first member</button>
+        </div>
+        <section id="cards-grid" class="cards-grid" aria-live="polite"></section>
+      </main>
+
+      <!-- Floating Add Button (mobile) -->
+      <button id="fab-add" class="fab" aria-label="Add Member">＋</button>
+
+      <!-- Member Form Modal -->
+      <div id="member-modal" class="overlay">
+        <div class="overlay-card large">
+          <div class="overlay-header">
+            <h3 id="member-modal-title">Add Member</h3>
+            <button id="member-modal-close" class="icon-btn">✕</button>
+          </div>
+          <form id="member-form" class="form" autocomplete="off">
+            <input type="hidden" id="member-id" />
+            <div class="form-row">
+              <div class="form-field">
+                <label for="full-name">Full Name</label>
+                <input id="full-name" type="text" placeholder="e.g., John Doe" required />
+              </div>
+              <div class="form-field">
+                <label for="relation">Relation</label>
+                <input id="relation" type="text" placeholder="e.g., Father, Sister, Uncle" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="mobile">Mobile Number</label>
+                <input id="mobile" type="tel" inputmode="tel" placeholder="e.g., +1 555 123 4567" required />
+              </div>
+              <div class="form-field">
+                <label for="email">Email (optional)</label>
+                <input id="email" type="email" placeholder="e.g., john@example.com" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="birthday">Birthday (optional)</label>
+                <input id="birthday" type="date" />
+              </div>
+              <div class="form-field">
+                <label for="photo-input">Profile Photo</label>
+                <input id="photo-input" type="file" accept="image/*" />
+              </div>
+            </div>
+
+            <div class="photo-capture">
+              <div class="photo-preview">
+                <img id="photo-preview" alt="Profile preview" />
+              </div>
+              <div class="camera-controls">
+                <button id="open-camera-btn" type="button" class="btn">Use Camera</button>
+                <button id="capture-btn" type="button" class="btn" disabled>Capture</button>
+                <button id="close-camera-btn" type="button" class="btn" disabled>Close Camera</button>
+              </div>
+              <video id="camera-stream" autoplay playsinline></video>
+              <canvas id="camera-canvas" class="hidden"></canvas>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn primary" id="save-member-btn">Save</button>
+              <button type="button" class="btn" id="cancel-member-btn">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Settings Modal -->
+      <div id="settings-modal" class="overlay">
+        <div class="overlay-card">
+          <div class="overlay-header">
+            <h3>Settings</h3>
+            <button id="settings-close" class="icon-btn">✕</button>
+          </div>
+          <div class="settings-section">
+            <h4>Security</h4>
+            <div class="form-field">
+              <label for="change-passcode-input">Change Passcode</label>
+              <input id="change-passcode-input" type="password" placeholder="New passcode" minlength="4" />
+            </div>
+            <div class="form-field">
+              <label for="change-passcode-confirm">Confirm New Passcode</label>
+              <input id="change-passcode-confirm" type="password" placeholder="Confirm new passcode" minlength="4" />
+            </div>
+            <button id="change-passcode-btn" class="btn">Update Passcode</button>
+          </div>
+
+          <div class="settings-section">
+            <h4>Storage</h4>
+            <p>Currently using localStorage (works offline). Backend mode can be enabled when deployed with an API.</p>
+            <div class="form-field">
+              <label for="storage-mode">Storage Mode</label>
+              <select id="storage-mode">
+                <option value="local">Local (Browser)</option>
+                <option value="remote" disabled>Remote API (Coming soon)</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="api-base">API Base URL (for Remote)</label>
+              <input id="api-base" type="url" placeholder="https://api.example.com" disabled />
+            </div>
+            <button id="save-storage-settings" class="btn" disabled>Save Storage Settings</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simple Toast -->
+      <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
